@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>key</title>
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <style type="text/css">
+        body{
+            background-color: #F0F0F2;
+            font-family: "Helvetica Neue",Helvetica,"\5fae\8f6f\96c5\9ed1",Arial,Verdana,sans-serif;
+        }
+        #main{
+            margin:0 auto;
+            width:250px;
+        }
+        ul,li,p{
+            margin:0;
+            padding:0;
+        }
+        ul{
+            margin:100px auto 0 auto;
+            list-style: none;
+            overflow: hidden;
+        }
+        li{
+            width: 48px;
+            height: 48px;
+            float: left;
+            border:1px solid #D4D4D4;
+            -webkit-border-radius:50%;
+            -moz-border-radius:50%;
+            border-radius:50%;
+            background-color: #FFF;
+        }
+        li.active{
+            background-color: #FEA625;
+        }
+        .mr{
+            margin: 0 50px 50px 0;
+        }
+       #tip{
+           margin:70px 0;
+           text-align: center;
+       }
+        #check p{
+            margin-bottom:20px;
+        }
+        #check input{
+            margin-right: 20px;
+        }
+    </style>
+</head>
+<body>
+<div id="main">
+    <div id="lock"></div>
+   <!-- <ul>
+        <li data-flag="false" data-form="" data-index="0" class="mr"></li>
+        <li data-flag="false" data-form="" data-index="1" class="mr"></li>
+        <li data-flag="false" data-form="" data-index="2" class="active"></li>
+        <li data-flag="false" data-form="" data-index="3" class="mr"></li>
+        <li data-flag="false" data-form="" data-index="4" class="mr"></li>
+        <li data-flag="false" data-form="" data-index="5" ></li>
+        <li data-flag="false" data-form="" data-index="6" class="mr"></li>
+        <li data-flag="false" data-form="" data-index="7" class="mr"></li>
+        <li data-flag="false" data-form="" data-index="8" ></li>
+    </ul>-->
+    <div id="tip">
+        <p>请输入手势密码！</p>
+    </div>
+    <div id="check">
+        <form action="##" id="checkS"></form>
+        <label for="checkS">
+            <p>
+                <input id="setS" type="radio" name="checkS" checked>设置密码
+            </p>
+            <p>
+                <input id="verifyS" type="radio" name="checkS">验证密码
+            </p>
+        </label>
+    </div>
+</div>
+<script src="360.js"></script>
+<script type="text/javascript">
+    var canvas = document.getElementById('lock'),
+        obj = {
+        parent:canvas,
+            width:250,
+            height:300,
+            circleD:48
+        };
+new Lock(obj);
+</script>
+</body>
+</html>
