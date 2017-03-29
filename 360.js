@@ -11,15 +11,14 @@
             height:300,//canvas的高
             circleD:48 //canvas中小圆的直径
         };
+        this.test = 0;
+        this.oldPos = {x:'',y:''};
+        this.startPos = {x:'',y:''};
         this.settings = {};
         this.canvas = null;
         this.contex = null;
         this.alreadyArr = [];//已经触摸的圆
-        this.leftArr = [];//未触摸的圆
         this.circleArr = [];//保存小圆的中心坐标
-        this.endSecondValidate = false;//是否在第二次输入密码
-        this.secondInput = false;//验证密码阶段已经结束
-        this.notSame = false;//两次输入不一致
         this.successSet = false;
         this.phase = 0;
     //    初始化解锁面板
@@ -72,12 +71,12 @@
         },
         touchStart:function () {
             var canvas = document.getElementsByTagName('canvas')[0],
-                // setSecret = document.getElementById('setS'),
                 that = this;
             myEvent.addHandler(canvas,'touchstart',function (e) {
                 e.preventDefault();
                 myEvent.addHandler(canvas,'touchmove',function (e) {
                     e = myEvent.getEvent(e);
+                    e.preventDefault();
                     var coordinate = that.getCoordinate(e),//获取触摸点的位置
                         i = 0,
                         arr = that.circleArr,
@@ -87,9 +86,9 @@
                             if(that.alreadyArr.indexOf(arr[i]) < 0){
                                 that.alreadyArr.push(arr[i]);
                             }
-                            that.leftArr.splice(i,1);//剩余未触摸数组中出去已经触摸过的数组
                         }
                     }
+                    // that.extendLine(that.alreadyArr,that.getCoordinate(e));
                     if(that.alreadyArr.length > 1){
                         that.drawPointLine(that.alreadyArr);
                     }
@@ -97,55 +96,26 @@
             });
             this.touchEnd2();
         },
-        touchEnd:function () {
-            var that = this,
-                alreadyLength,
-                lock = that.settings.parent,
-                canvas = document.getElementsByTagName('canvas')[0],
-                tip = document.getElementById('tip'),
-                userValidate = document.getElementById('verifyS');
-                myEvent.addHandler(canvas,'touchend',function () {
-                    alreadyLength = that.alreadyArr.slice(0).length;
-                    //用户勾选了radio为验证密码的按钮
-                    if(userValidate.checked){
-                        if(window.localStorage.getItem('zyCooridate') ==  that.changeToStr(that.alreadyArr)){
-                            tip.innerHTML = '密码正确！';
-                            that.reflowCanvas();
-                        }else{
-                            tip.innerHTML = '输入的密码不正确，请再次输入！';
-                            that.reflowCanvas();
-                        }
-                    }
-                    //只有用户在再次输入手势密码后that.secondInput才为true
-                    if(that.secondInput){
-                        if(window.localStorage.getItem('zyCooridate') ==  that.changeToStr(that.alreadyArr)){
-                            tip.innerHTML = '密码设置成功！';
-                            that.endSecondValidate = true;
-                            that.reflowCanvas();
-                        }else{
-                            tip.innerHTML = '两次输入的密码不一致，请重新设置密码！';
-                            that.secondInput = false;
-                            that.notSame = true;
-                            that.reflowCanvas();
-                        }
-                    }
-                    //密码少于5个圆需重新设置
-                    if(!userValidate.checked){
-                        if(alreadyLength < 5){
-                            tip.innerHTML = '密码太短，至少需要5个点！';
-                            setTimeout(function () {
-                                that.reflowCanvas();
-                            },1000);
-                        }else{//密码大于4个圆，下一次便可验证密码，因此将secondInput = true
-                            if(!that.endSecondValidate && !that.notSame){
-                                window.localStorage.zyCooridate = that.changeToStr(that.alreadyArr);
-                                tip.innerHTML = '请再次输入手势密码';
-                                that.secondInput = true;
-                                that.reflowCanvas();
-                            }
-                        }
-                    }
-            });
+        extendLine:function (arr,pos) {
+            this.test++;
+            if(this.test == 10){
+                console.log(10);
+            }
+            var arrCirPoint = [],
+                len = 0,
+                startPos = {};
+            for(var i =0,j = arr.length; i<j; i++){
+                if(Math.abs(pos.x - arr[i].x) < this.settings.circleD/2 && Math.abs(pos.y - arr[i].y) < this.settings.circleD/2 ){
+                    this.startPos = {x:arr[i].x,y:arr[i].y};
+                    break;
+                }
+            }
+            if(this.oldPos.x != ''){
+                this.drawLine( this.startPos.x, this.startPos.y, this.oldPos.x,this.oldPos.y,'#F0F0F2');
+            }
+            this.drawLine(startPos.x,startPos.y,pos.x,pos.y,'#E57679');
+            this.oldPos.x = pos.x;
+            this.oldPos.y = pos.y;
         },
         touchEnd2:function () {
             var that = this,
@@ -154,7 +124,9 @@
                 tip = document.getElementById('tip'),
                 userValidate = document.getElementById('verifyS');
                 userSet = document.getElementById('setS');
-            myEvent.addHandler(canvas,'touchend',function () {
+            myEvent.addHandler(canvas,'touchend',function (e) {
+                e = myEvent.getEvent(e);
+                e.preventDefault();
                 alreadyLength = that.alreadyArr.slice(0).length;
                 if(userValidate.checked){
                     that.phase = 2;
@@ -256,9 +228,9 @@
             lock.removeChild(canvas);
             this.init(this.settings);
             this.alreadyArr = [];
-            this.leftArr = this.circleArr.slice(0);
 
         },
+        //将圆心坐标转换为字符串
         changeToStr:function (arr) {
             var str = '';
             for(var i =0,j = arr.length; i<j; i++){
@@ -267,13 +239,15 @@
             return str;
 
         },
+        //已经触摸过的圆高亮显示
         drawPointLine:function (arr) {
             for(var i =0,j = arr.length - 1; i<j; i++){
-                this.drawLine(arr[i].x,arr[i].y,arr[i+1].x,arr[i+1].y);
+                this.drawLine(arr[i].x,arr[i].y,arr[i+1].x,arr[i+1].y,'#E57679');
                 this.drawCircle(arr[i].x,arr[i].y,this.settings.circleD/2,'#FEA625');
                 this.drawCircle(arr[i+1].x,arr[i+1].y,this.settings.circleD/2,'#FEA625');
             }
         },
+        //获取触摸点的位置
         getCoordinate:function (e) {
             e = myEvent.getEvent(e);
             var moveX = e.touches[0].clientX,//触摸点距离设备屏幕左边的距离
@@ -285,10 +259,11 @@
                 y:cY
             }
         },
-        drawLine:function (x0,y0,x1,y1) {
+        //画直线
+        drawLine:function (x0,y0,x1,y1,color) {
             var canvas = document.getElementsByTagName('canvas')[0],
                 context = this.contex;
-            context.strokeStyle = '#E57679';
+            context.strokeStyle = color;
             context.lineWidth = '5px';
             context.beginPath();
             context.moveTo(x0,y0);

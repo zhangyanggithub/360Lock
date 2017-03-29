@@ -7,11 +7,20 @@
     <style type="text/css">
         body{
             background-color: #F0F0F2;
+            margin:0;
             font-family: "Helvetica Neue",Helvetica,"\5fae\8f6f\96c5\9ed1",Arial,Verdana,sans-serif;
         }
         #main{
             margin:0 auto;
             width:250px;
+        }
+        #title{
+            text-align: center;
+            font-size: 21px;
+            line-height: 68px;
+            background-color: #F8F8F8;
+            width: 100%;
+            border-bottom: 2px solid #BCBCBC;
         }
         ul,li,p{
             margin:0;
@@ -39,7 +48,7 @@
             margin: 0 50px 50px 0;
         }
        #tip{
-           margin:70px 0;
+           margin:34px 0 50px 0;
            text-align: center;
        }
         #check p{
@@ -51,7 +60,7 @@
     </style>
 </head>
 <body>
-
+<div id="title">手势密码</div>
 <div id="main">
     <div id="lock"></div>
    <!-- <ul>
@@ -82,10 +91,10 @@
 </div>
 <pre>
     待实现的功能：
-    1验证阶段，若输入的密码长度小于5，应提示‘输入错误’
-    2若重新点击radio设置密码，则重新初始化canvas，并将localStorage里面的zyCoordinate设为空。
+    <!--1验证阶段，若输入的密码长度小于5，应提示‘输入错误’-->
+    <!--2若重新点击radio设置密码，则重新初始化canvas，并将localStorage里面的zyCoordinate设为空。-->
     3鼠标未到达下一个圆之前应该将直线延伸出来
-    4设置密码radio的意义
+    <!--4设置密码radio的意义-->
 </pre>
 <script src="360.js"></script>
 <script type="text/javascript">
