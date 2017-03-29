@@ -1,6 +1,7 @@
 /**
  * Created by 张洋 on 17-3-28.
  */
+
 (function () {
     var Lock = function (options) {
         //m默认参数
@@ -8,7 +9,7 @@
             parent:document.body,//将canvas添加到parent上
             width:250,//canvas的宽
             height:300,//canvas的高
-            ciclrD:48 //canvas中小圆的直径
+            circleD:48 //canvas中小圆的直径
         };
         this.settings = {};
         this.canvas = null;
@@ -16,8 +17,11 @@
         this.alreadyArr = [];//已经触摸的圆
         this.leftArr = [];//未触摸的圆
         this.circleArr = [];//保存小圆的中心坐标
-        this.validate = false;//是否在验证密码
-        this.endValidate = true;//验证密码阶段是否已经结束
+        this.endSecondValidate = false;//是否在第二次输入密码
+        this.secondInput = false;//验证密码阶段已经结束
+        this.notSame = false;//两次输入不一致
+        this.successSet = false;
+        this.phase = 0;
     //    初始化解锁面板
         this.init(options);
     };
@@ -68,22 +72,22 @@
         },
         touchStart:function () {
             var canvas = document.getElementsByTagName('canvas')[0],
+                // setSecret = document.getElementById('setS'),
                 that = this;
             myEvent.addHandler(canvas,'touchstart',function (e) {
-                e = myEvent.getEvent(e);
                 e.preventDefault();
                 myEvent.addHandler(canvas,'touchmove',function (e) {
                     e = myEvent.getEvent(e);
-                    var coordinate = that.getCoordinate(e),
+                    var coordinate = that.getCoordinate(e),//获取触摸点的位置
                         i = 0,
                         arr = that.circleArr,
                         len = arr.length;
-                    for(;i<len;i++){
+                    for(;i<len;i++){//将离触摸点距离小于小圆半径的小圆圆形位置push到alreadyArr即已经触摸过的数组中
                         if(Math.abs(coordinate.x - arr[i].x) < that.settings.circleD/2 && Math.abs(coordinate.y - arr[i].y) < that.settings.circleD/2 ){
                             if(that.alreadyArr.indexOf(arr[i]) < 0){
                                 that.alreadyArr.push(arr[i]);
                             }
-                            that.leftArr.splice(i,1);
+                            that.leftArr.splice(i,1);//剩余未触摸数组中出去已经触摸过的数组
                         }
                     }
                     if(that.alreadyArr.length > 1){
@@ -91,7 +95,7 @@
                     }
                 });
             });
-            this.touchEnd();
+            this.touchEnd2();
         },
         touchEnd:function () {
             var that = this,
@@ -102,7 +106,111 @@
                 userValidate = document.getElementById('verifyS');
                 myEvent.addHandler(canvas,'touchend',function () {
                     alreadyLength = that.alreadyArr.slice(0).length;
+                    //用户勾选了radio为验证密码的按钮
+                    if(userValidate.checked){
+                        if(window.localStorage.getItem('zyCooridate') ==  that.changeToStr(that.alreadyArr)){
+                            tip.innerHTML = '密码正确！';
+                            that.reflowCanvas();
+                        }else{
+                            tip.innerHTML = '输入的密码不正确，请再次输入！';
+                            that.reflowCanvas();
+                        }
+                    }
+                    //只有用户在再次输入手势密码后that.secondInput才为true
+                    if(that.secondInput){
+                        if(window.localStorage.getItem('zyCooridate') ==  that.changeToStr(that.alreadyArr)){
+                            tip.innerHTML = '密码设置成功！';
+                            that.endSecondValidate = true;
+                            that.reflowCanvas();
+                        }else{
+                            tip.innerHTML = '两次输入的密码不一致，请重新设置密码！';
+                            that.secondInput = false;
+                            that.notSame = true;
+                            that.reflowCanvas();
+                        }
+                    }
+                    //密码少于5个圆需重新设置
+                    if(!userValidate.checked){
+                        if(alreadyLength < 5){
+                            tip.innerHTML = '密码太短，至少需要5个点！';
+                            setTimeout(function () {
+                                that.reflowCanvas();
+                            },1000);
+                        }else{//密码大于4个圆，下一次便可验证密码，因此将secondInput = true
+                            if(!that.endSecondValidate && !that.notSame){
+                                window.localStorage.zyCooridate = that.changeToStr(that.alreadyArr);
+                                tip.innerHTML = '请再次输入手势密码';
+                                that.secondInput = true;
+                                that.reflowCanvas();
+                            }
+                        }
+                    }
+            });
+        },
+        touchEnd2:function () {
+            var that = this,
+                alreadyLength,
+                canvas = document.getElementsByTagName('canvas')[0],
+                tip = document.getElementById('tip'),
+                userValidate = document.getElementById('verifyS');
+                userSet = document.getElementById('setS');
+            myEvent.addHandler(canvas,'touchend',function () {
+                alreadyLength = that.alreadyArr.slice(0).length;
                 if(userValidate.checked){
+                    that.phase = 2;
+                }
+                switch (that.phase){
+                    case 0:{//设置密码时第一次输入
+                        if(alreadyLength < 5){
+                            tip.innerHTML = '密码太短，至少需要5个点！';
+                            setTimeout(function () {
+                                that.reflowCanvas();
+                            },1000);
+                            that.phase = 0;
+                        }else{//密码大于4个圆，下一次便可验证密码，因此将secondInput = true
+                           window.localStorage.zyCooridate = that.changeToStr(that.alreadyArr);
+                            tip.innerHTML = '请再次输入手势密码';
+                            that.secondInput = true;
+                            that.reflowCanvas();
+                            that.phase = 1;
+                        }
+
+                    } break;
+                    case 1:{//请再次输入
+                        if(window.localStorage.getItem('zyCooridate') ==  that.changeToStr(that.alreadyArr)){
+                            tip.innerHTML = '密码设置成功！';
+                            that.successSet = true;
+                            that.reflowCanvas();
+                            that.phase = 0;
+                        }else{
+                            tip.innerHTML = '两次输入的密码不一致，请重新设置密码！';
+                            that.successSet = false;
+                            that.reflowCanvas();
+                            that.phase = 0;
+                        }
+
+                    } break;
+                    default:break;
+                    case 2:{//用户验证是否是上次保存的密码
+                        if( that.successSet ){
+                            if(window.localStorage.getItem('zyCooridate') ==  that.changeToStr(that.alreadyArr)){
+                                tip.innerHTML = '密码正确！';
+                                that.reflowCanvas();
+                            }else{
+                                tip.innerHTML = '输入的密码不正确，请再次输入！';
+                                that.reflowCanvas();
+                            }
+                        }else{
+                            tip.innerHTML = '无法验证，因为您上次未成功设置密码！请您先设置密码！';
+                        }
+                        that.phase = 0;
+                    } break;
+                    /*  case 3:{//请重新设置密码
+
+                    } break;*/
+                }
+                //用户勾选了radio为验证密码的按钮
+           /*     if(userValidate.checked){
                     if(window.localStorage.getItem('zyCooridate') ==  that.changeToStr(that.alreadyArr)){
                         tip.innerHTML = '密码正确！';
                         that.reflowCanvas();
@@ -111,27 +219,36 @@
                         that.reflowCanvas();
                     }
                 }
-                if(that.validate){
+                //只有用户在再次输入手势密码后that.secondInput才为true
+                if(that.secondInput){
                     if(window.localStorage.getItem('zyCooridate') ==  that.changeToStr(that.alreadyArr)){
                         tip.innerHTML = '密码设置成功！';
-                        that.endValidate = false;
+                        that.endSecondValidate = true;
+                        that.reflowCanvas();
+                    }else{
+                        tip.innerHTML = '两次输入的密码不一致，请重新设置密码！';
+                        that.secondInput = false;
+                        that.notSame = true;
                         that.reflowCanvas();
                     }
                 }
-                if(alreadyLength < 5){
-                    tip.innerHTML = '密码太短，至少需要5个点！';
-                    setTimeout(function () {
-                        that.reflowCanvas();
-                    },1000);
-                }else{
-                    if(that.endValidate){
-                        window.localStorage.zyCooridate = that.changeToStr(that.alreadyArr);
-                        tip.innerHTML = '请再次输入手势密码';
-                        that.validate = true;
-                       that.reflowCanvas();
+                //密码少于5个圆需重新设置
+                if(!userValidate.checked){
+                    if(alreadyLength < 5){
+                        tip.innerHTML = '密码太短，至少需要5个点！';
+                        setTimeout(function () {
+                            that.reflowCanvas();
+                        },1000);
+                    }else{//密码大于4个圆，下一次便可验证密码，因此将secondInput = true
+                        if(!that.endSecondValidate && !that.notSame){
+                            window.localStorage.zyCooridate = that.changeToStr(that.alreadyArr);
+                            tip.innerHTML = '请再次输入手势密码';
+                            that.secondInput = true;
+                            that.reflowCanvas();
+                        }
                     }
-                }
-            })
+                }*/
+            });
         },
         reflowCanvas:function () {
            var lock = this.settings.parent,
@@ -153,8 +270,8 @@
         drawPointLine:function (arr) {
             for(var i =0,j = arr.length - 1; i<j; i++){
                 this.drawLine(arr[i].x,arr[i].y,arr[i+1].x,arr[i+1].y);
-                this.drawCircle(arr[i].x,arr[i].y,this.settings.ciclrD/2,'#FEA625');
-                this.drawCircle(arr[i+1].x,arr[i+1].y,this.settings.ciclrD/2,'#FEA625');
+                this.drawCircle(arr[i].x,arr[i].y,this.settings.circleD/2,'#FEA625');
+                this.drawCircle(arr[i+1].x,arr[i+1].y,this.settings.circleD/2,'#FEA625');
             }
         },
         getCoordinate:function (e) {
