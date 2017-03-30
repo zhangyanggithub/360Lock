@@ -17,10 +17,12 @@
         this.settings = {};
         this.canvas = null;
         this.contex = null;
+        this.alreadyLen = 0;
         this.alreadyArr = [];//已经触摸的圆
         this.circleArr = [];//保存小圆的中心坐标
         this.successSet = false;
         this.phase = 0;
+        this.len = true;
     //    初始化解锁面板
         this.init(options);
     };
@@ -49,7 +51,7 @@
                 for(j = 0;j<3;j++){
                     x = j*(cw/3)+cd;
                     y = i*(ch/3)+cd;
-                    this.circleArr.push({x:x,y:y});
+                    this.circleArr.push({x:x,y:y,again:false});
                     this.drawCircle(x,y,cd/2,'#FFF');
                 }
             }
@@ -84,7 +86,21 @@
                     for(;i<len;i++){//将离触摸点距离小于小圆半径的小圆圆形位置push到alreadyArr即已经触摸过的数组中
                         if(Math.abs(coordinate.x - arr[i].x) < that.settings.circleD/2 && Math.abs(coordinate.y - arr[i].y) < that.settings.circleD/2 ){
                             if(that.alreadyArr.indexOf(arr[i]) < 0){
+                                that.alreadyLen++;
                                 that.alreadyArr.push(arr[i]);
+                                that.len = true;
+                            }else {
+                                if(arr[i].again && that.len){
+                                    that.alreadyArr.push(arr[i]);
+                                    that.len = false;
+                                    var newarr = that.alreadyArr.slice(0),
+                                        a = newarr.indexOf(arr[i]),
+                                        b = newarr.splice(a,1),
+                                        c = newarr.indexOf(arr[i]);
+                                    if(c > -1){
+                                        that.len = true;
+                                    }
+                                }
                             }
                         }
                     }
@@ -133,7 +149,7 @@
                 }
                 switch (that.phase){
                     case 0:{//设置密码时第一次输入
-                        if(alreadyLength < 5){
+                        if(that.alreadyLen < 5){
                             tip.innerHTML = '密码太短，至少需要5个点！';
                             setTimeout(function () {
                                 that.reflowCanvas();
@@ -141,14 +157,16 @@
                             that.phase = 0;
                         }else{//密码大于4个圆，下一次便可验证密码，因此将secondInput = true
                            window.localStorage.zyCooridate = that.changeToStr(that.alreadyArr);
+                           console.log(that.changeToStr(that.alreadyArr));
                             tip.innerHTML = '请再次输入手势密码';
                             that.secondInput = true;
                             that.reflowCanvas();
                             that.phase = 1;
                         }
-
+                        that.alreadyLen = 0;
                     } break;
                     case 1:{//请再次输入
+                        // console.log(that.changeToStr(that.alreadyArr));
                         if(window.localStorage.getItem('zyCooridate') ==  that.changeToStr(that.alreadyArr)){
                             tip.innerHTML = '密码设置成功！';
                             that.successSet = true;
@@ -160,7 +178,7 @@
                             that.reflowCanvas();
                             that.phase = 0;
                         }
-
+                        that.alreadyLen = 0;
                     } break;
                     default:break;
                     case 2:{//用户验证是否是上次保存的密码
@@ -176,6 +194,7 @@
                             tip.innerHTML = '无法验证，因为您上次未成功设置密码！请您先设置密码！';
                         }
                         that.phase = 0;
+                        that.alreadyLen = 0;
                     } break;
                     /*  case 3:{//请重新设置密码
 
@@ -242,9 +261,15 @@
         //已经触摸过的圆高亮显示
         drawPointLine:function (arr) {
             for(var i =0,j = arr.length - 1; i<j; i++){
+                if(arr[i+2] != undefined){
+                    arr[i].again = true;
+                }
                 this.drawLine(arr[i].x,arr[i].y,arr[i+1].x,arr[i+1].y,'#E57679');
                 this.drawCircle(arr[i].x,arr[i].y,this.settings.circleD/2,'#FEA625');
                 this.drawCircle(arr[i+1].x,arr[i+1].y,this.settings.circleD/2,'#FEA625');
+            }
+            if(arr[0].x == arr[arr.length-1].x && arr[0].y == arr[arr.length-1].y){
+                this.drawLine(arr[0].x,arr[0].y,arr[arr.length-1].x,arr[arr.length-1].y,'#E57679');
             }
         },
         //获取触摸点的位置
