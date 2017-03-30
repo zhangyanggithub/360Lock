@@ -22,30 +22,9 @@
             width: 100%;
             border-bottom: 2px solid #BCBCBC;
         }
-        ul,li,p{
+       p{
             margin:0;
             padding:0;
-        }
-        ul{
-            margin:100px auto 0 auto;
-            list-style: none;
-            overflow: hidden;
-        }
-        li{
-            width: 48px;
-            height: 48px;
-            float: left;
-            border:1px solid #D4D4D4;
-            -webkit-border-radius:50%;
-            -moz-border-radius:50%;
-            border-radius:50%;
-            background-color: #FFF;
-        }
-        li.active{
-            background-color: #FEA625;
-        }
-        .mr{
-            margin: 0 50px 50px 0;
         }
        #tip{
            margin:34px 0 50px 0;
@@ -63,17 +42,6 @@
 <div id="title">手势密码</div>
 <div id="main">
     <div id="lock"></div>
-   <!-- <ul>
-        <li data-flag="false" data-form="" data-index="0" class="mr"></li>
-        <li data-flag="false" data-form="" data-index="1" class="mr"></li>
-        <li data-flag="false" data-form="" data-index="2" class="active"></li>
-        <li data-flag="false" data-form="" data-index="3" class="mr"></li>
-        <li data-flag="false" data-form="" data-index="4" class="mr"></li>
-        <li data-flag="false" data-form="" data-index="5" ></li>
-        <li data-flag="false" data-form="" data-index="6" class="mr"></li>
-        <li data-flag="false" data-form="" data-index="7" class="mr"></li>
-        <li data-flag="false" data-form="" data-index="8" ></li>
-    </ul>-->
     <div id="tip">
         <p>请输入手势密码！</p>
     </div>
@@ -89,13 +57,6 @@
         </label>
     </div>
 </div>
-<pre>
-    待实现的功能：
-    <!--1验证阶段，若输入的密码长度小于5，应提示‘输入错误’-->
-    <!--2若重新点击radio设置密码，则重新初始化canvas，并将localStorage里面的zyCoordinate设为空。-->
-    3鼠标未到达下一个圆之前应该将直线延伸出来
-    <!--4设置密码radio的意义-->
-</pre>
 <script src="360.js"></script>
 <script type="text/javascript">
     var canvas = document.getElementById('lock'),

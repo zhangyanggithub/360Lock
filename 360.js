@@ -1,7 +1,6 @@
 /**
  * Created by 张洋 on 17-3-28.
  */
-
 (function () {
     var Lock = function (options) {
         //m默认参数
@@ -22,7 +21,7 @@
         this.circleArr = [];//保存小圆的中心坐标
         this.successSet = false;
         this.phase = 0;
-        this.len = true;
+        this.canAddNext = true;
     //    初始化解锁面板
         this.init(options);
     };
@@ -55,7 +54,6 @@
                     this.drawCircle(x,y,cd/2,'#FFF');
                 }
             }
-            this.leftArr = this.circleArr.slice(0);//初始化剩余未触摸圆
             this.touchStart();
         },
         //drawCircle画圆
@@ -88,23 +86,23 @@
                             if(that.alreadyArr.indexOf(arr[i]) < 0){
                                 that.alreadyLen++;
                                 that.alreadyArr.push(arr[i]);
-                                that.len = true;
+                                that.canAddNext = true;
                             }else {
-                                if(arr[i].again && that.len){
+                                if(arr[i].again && that.canAddNext){
                                     that.alreadyArr.push(arr[i]);
-                                    that.len = false;
+                                    that.canAddNext = false;
                                     var newarr = that.alreadyArr.slice(0),
                                         a = newarr.indexOf(arr[i]),
                                         b = newarr.splice(a,1),
                                         c = newarr.indexOf(arr[i]);
                                     if(c > -1){
-                                        that.len = true;
+                                        that.canAddNext = true;
                                     }
                                 }
                             }
                         }
                     }
-                    // that.extendLine(that.alreadyArr,that.getCoordinate(e));
+                    // that.extendLine(that.alreadyArr,that.getCoordinate(e));画延长线的函数，功能未实现
                     if(that.alreadyArr.length > 1){
                         that.drawPointLine(that.alreadyArr);
                     }
@@ -180,7 +178,6 @@
                         }
                         that.alreadyLen = 0;
                     } break;
-                    default:break;
                     case 2:{//用户验证是否是上次保存的密码
                         if( that.successSet ){
                             if(window.localStorage.getItem('zyCooridate') ==  that.changeToStr(that.alreadyArr)){
@@ -192,53 +189,13 @@
                             }
                         }else{
                             tip.innerHTML = '无法验证，因为您上次未成功设置密码！请您先设置密码！';
+                            that.reflowCanvas();
                         }
                         that.phase = 0;
                         that.alreadyLen = 0;
                     } break;
-                    /*  case 3:{//请重新设置密码
-
-                    } break;*/
+                    default:break;
                 }
-                //用户勾选了radio为验证密码的按钮
-           /*     if(userValidate.checked){
-                    if(window.localStorage.getItem('zyCooridate') ==  that.changeToStr(that.alreadyArr)){
-                        tip.innerHTML = '密码正确！';
-                        that.reflowCanvas();
-                    }else{
-                        tip.innerHTML = '输入的密码不正确，请再次输入！';
-                        that.reflowCanvas();
-                    }
-                }
-                //只有用户在再次输入手势密码后that.secondInput才为true
-                if(that.secondInput){
-                    if(window.localStorage.getItem('zyCooridate') ==  that.changeToStr(that.alreadyArr)){
-                        tip.innerHTML = '密码设置成功！';
-                        that.endSecondValidate = true;
-                        that.reflowCanvas();
-                    }else{
-                        tip.innerHTML = '两次输入的密码不一致，请重新设置密码！';
-                        that.secondInput = false;
-                        that.notSame = true;
-                        that.reflowCanvas();
-                    }
-                }
-                //密码少于5个圆需重新设置
-                if(!userValidate.checked){
-                    if(alreadyLength < 5){
-                        tip.innerHTML = '密码太短，至少需要5个点！';
-                        setTimeout(function () {
-                            that.reflowCanvas();
-                        },1000);
-                    }else{//密码大于4个圆，下一次便可验证密码，因此将secondInput = true
-                        if(!that.endSecondValidate && !that.notSame){
-                            window.localStorage.zyCooridate = that.changeToStr(that.alreadyArr);
-                            tip.innerHTML = '请再次输入手势密码';
-                            that.secondInput = true;
-                            that.reflowCanvas();
-                        }
-                    }
-                }*/
             });
         },
         reflowCanvas:function () {
@@ -297,6 +254,7 @@
             context.closePath();
         }
     };
+    //兼容浏览器的事件处理方法
     myEvent = {
         addHandler : function(element, type, handler) {
             if (element.addEventListener) {
