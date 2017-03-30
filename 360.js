@@ -11,6 +11,8 @@
             circleD:48 //canvas中小圆的直径
         };
         this.test = 0;
+        this.oldPos = {x:'',y:''};
+        this.startPos = {x:'',y:''};
         this.settings = {};
         this.canvas = null;
         this.contex = null;
@@ -23,6 +25,7 @@
         this.state ;
         this.case = true;
         this.currentPoint={};
+        this.sameArrAlready = [];
     //    初始化解锁面板
         this.init(options);
     };
@@ -75,13 +78,13 @@
             var canvas = document.getElementsByTagName('canvas')[0],
                 context = canvas.getContext('2d');
             this.contex = context;
-            context.strokeStyle = '#CFCFCF';
+            context.strokeStyle = '#c0c0c0';
             context.fillStyle = color;
             context.beginPath();
             context.arc(x,y,r,0,Math.PI*2,true);
+            context.closePath();
             context.stroke();
             context.fill();
-            context.closePath();
         },
         touchStart:function () {
             var canvas = document.getElementsByTagName('canvas')[0],
@@ -117,7 +120,7 @@
                         that.case = true;
                     }
                     that.sameArrAlready = that.alreadyArr.slice(0);
-                    that.updateMove(coordinate);
+                    that.updataMove(coordinate);
                 });
             });
             this.touchEnd();
@@ -125,7 +128,7 @@
         getDistance:function (pos1,pos2) {
             return Math.sqrt((pos1.x - pos2.x)*(pos1.x -pos2.x)+(pos1.y - pos2.y)*(pos1.y - pos2.y));
         },
-        updateMove:function (pos) {
+        updataMove:function (pos) {
             var arr = this.alreadyArr,
                 canvas = document.getElementsByTagName('canvas')[0],
                 context = canvas.getContext('2d');
@@ -134,15 +137,12 @@
             this.drawCircle(arr[0].x,arr[0].y,this.settings.circleD/2,'#FEA625');
             context.beginPath();
             context.moveTo(arr[0].x,arr[0].y);
-            context.strokeStyle = '#DF3134';
+            this.contex.strokeStyle = '#DF3134';
             context.lineWidth = 3;
             for(var i1 =1,j1 = arr.length; i1<j1; i1++){
                 context.lineTo(arr[i1].x,arr[i1].y);
                 context.stroke();
             }
-            context.closePath();
-
-            context.beginPath();
             context.lineTo(pos.x,pos.y);
             context.stroke();
             this.contex.closePath();
@@ -155,6 +155,29 @@
                 this.drawCircle(arr[i].x,arr[i].y,this.settings.circleD/2,'#FEA625');
                 this.drawCircle(arr[i+1].x,arr[i+1].y,this.settings.circleD/2,'#FEA625');
             }
+        },
+        extendLine:function (arr,pos) {
+
+
+            this.test++;
+            if(this.test == 10){
+                console.log(10);
+            }
+            var arrCirPoint = [],
+                len = 0,
+                startPos = {};
+            for(var i =0,j = arr.length; i<j; i++){
+                if(Math.abs(pos.x - arr[i].x) < this.settings.circleD/2 && Math.abs(pos.y - arr[i].y) < this.settings.circleD/2 ){
+                    this.startPos = {x:arr[i].x,y:arr[i].y};
+                    break;
+                }
+            }
+            if(this.oldPos.x != ''){
+                this.drawLine( this.startPos.x, this.startPos.y, this.oldPos.x,this.oldPos.y,'#F0F0F2');
+            }
+            this.drawLine(startPos.x,startPos.y,pos.x,pos.y,'#E57679');
+            this.oldPos.x = pos.x;
+            this.oldPos.y = pos.y;
         },
         touchEnd:function () {
             var that = this,
